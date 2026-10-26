@@ -1,0 +1,44 @@
+[project]
+name = "solarian-sam2"
+version = "0.1.0"
+description = "Click-to-track bounding boxes for Solarian observations, served by SAM 2"
+authors = [
+    {name = "Solarian Contributors", email = "solarian@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+# The processor side runs wherever the bbox field is computed (relay or
+# robot), so it needs only what solarian core already ships.
+dependencies = [
+    "solarian>=0.1.0",
+    "numpy",
+    "opencv-python",
+]
+
+[project.optional-dependencies]
+# The GPU host running `solarian run-service sam2-tracker`. SAM 2 itself
+# (the `sam2` package from segment-anything-2-real-time) is installed from
+# its checkout: `pip install -e <checkout>`.
+server = [
+    "torch",
+    "fastapi",
+    "uvicorn",
+]
+
+[project.entry-points."solarian.services"]
+sam2-tracker = "solarian_sam2.service:Sam2TrackerService"
+
+# `solarian dataset run track`: the same model, offline, writing training targets.
+# Needs the server extras and SAM 2 where it runs.
+[project.entry-points."solarian.dataset_ops"]
+track = "solarian_sam2.op:TrackOp"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["solarian_sam2*"]
+
+[tool.setuptools.package-data]
+solarian_sam2 = ["templates/services/*.yaml"]

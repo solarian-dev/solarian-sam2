@@ -1,0 +1,36 @@
+# SAM 2 click-to-track: the conf of a `bbox` CalculatedField declared with
+# processor=Sam2BboxProcessor. solarian install copies it to
+# conf/services/bbox_tracker.yaml.
+#
+# Serve the model on a GPU host with:
+#   solarian run-service bbox_tracker
+
+# Which host calls the tracker: `server` (the relay) or `robot` (the camera's
+# module process). Every host reads this same file, so they always agree.
+# A skill that reads the box should read its placement from the same key
+# (UMIPnPSkill's umi_pnp.yaml does, as pnp_execution_place).
+execution_place: ${deployment.bbox_tracker_execution_place}
+
+server_url: ${deployment.bbox_tracker_url}
+# The endpoint's bearer token; null for a server that asks for none.
+token: ${oc.select:deployment.solarian_base_endpoint_token,null}
+
+# What `solarian run-service bbox_tracker` and Solarian Base serve. SAM 2's
+# weights are downloaded on first use into --checkpoint-dir (default
+# $SAM2_CHECKPOINT_DIR or ./checkpoints).
+server:
+  service: sam2-tracker
+  port: 8765
+  args: [--model, small]
+
+# Long edge of the frame sent to SAM 2, in pixels; null sends full size.
+# SAM 2 rescales internally, so more mostly costs bandwidth.
+resize: 224
+jpeg_quality: 90
+
+# Seconds. The first /init may compile kernels on the server.
+timeout: 5.0
+init_timeout: 60.0
+
+# StatusBoard prefix for the call / age rows.
+label: SAM2 tracker
